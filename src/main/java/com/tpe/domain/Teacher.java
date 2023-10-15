@@ -44,14 +44,17 @@ public class Teacher {//teacher
 
 
     @Setter(AccessLevel.NONE)
-    private LocalDateTime registerDate;
+    private LocalDateTime registerDate=LocalDateTime.now();
 
 
     @ManyToMany
     @JoinTable(name = "teacher_book",
-   joinColumns = @JoinColumn(name = "teacher_id"),
+    joinColumns = @JoinColumn(name = "teacher_id"),
     inverseJoinColumns = @JoinColumn(name = "book_id"))
     private List<Book> books= new ArrayList<>();
+
+
+
 
 
 
