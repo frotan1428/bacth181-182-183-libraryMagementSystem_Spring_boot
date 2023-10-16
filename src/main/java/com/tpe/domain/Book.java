@@ -34,7 +34,7 @@ public class Book {
     @Column(nullable = false)
     private String publicationDate;
 
-    @ManyToMany(mappedBy = "books",cascade = CascadeType.REMOVE,fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "books",cascade = CascadeType.REMOVE,fetch = FetchType.EAGER)
     private List<Teacher> teachers = new ArrayList<>();
 
 
