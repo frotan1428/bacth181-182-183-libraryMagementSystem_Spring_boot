@@ -1,8 +1,7 @@
 package com.tpe.controller;
 
 import com.tpe.domain.Book;
-import com.tpe.domain.Teacher;
-import com.tpe.dto.BookDto;
+import com.tpe.dto.BookDTO;
 import com.tpe.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -79,36 +78,20 @@ public class BookController {
         return new ResponseEntity<>(books, HttpStatus.OK);
     }
 
+    @PutMapping("/update/{id}")//localhost:8080/books/update/1
 
-
-    @GetMapping("/page")//http://localhost:8080/books/page?page=0&size=1&sort=title&direction=ASC
-    public ResponseEntity<Page<Book>> getBooksByPage(@RequestParam("page") int page,
-                                                     @RequestParam("size") int size,
-                                                     @RequestParam("sort") String prop,
-                                                     @RequestParam("direction") Sort.Direction direction) {
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, prop));
-
-        Page<Book> pageOfBooks = bookService.getAllBooksWithPage(pageable);
-
-        return ResponseEntity.ok(pageOfBooks);
-    }
-
-
-    @PutMapping("/update/{id}") //http://localhost:8080/update/1
-    public ResponseEntity<Map<String,String>> updateBookByDto(@PathVariable Long id,
-                                                             @Valid @RequestBody BookDto bookDto){
-
-         bookService.updateBookByDto(id,bookDto);
-
+    public ResponseEntity<Map<String,String>> updateBookByDTO(@PathVariable Long id,
+                                                            @Valid @RequestBody BookDTO bookDTO){
+        bookService.updateBookByDTO(id,bookDTO);
         Map<String, String> map = new HashMap<>();
-        map.put("message", "Book has been updated  with  " + id + "  successfully.");
+        map.put("message", "Book has been updated with :" + id + " Successfully.");
         map.put("success", "true");
-
         return ResponseEntity.ok(map);
+
     }
 
-    @PostMapping("/{teacherId}/books")//http://localhost:8080/books/{teacherId}/books?bookId={bookId} == T 1  and book 2-3
+
+    @PostMapping("/{teacherId}/books")//localhost:8080/books/{teacherId}/books?BookId={BookId}
 
     public ResponseEntity<Map<String,String>> addBookForTeacher(
             @PathVariable Long teacherId,
@@ -117,11 +100,10 @@ public class BookController {
         return bookService.addBookForTeacher(teacherId,bookId);
     }
 
-    @GetMapping("/byAuthorUsingJPQL")//http://localhost:8080/books/byAuthorUsingJPQL?author=frotan
-    public ResponseEntity<List<Book>> getBookByAuthorUsingJPQL(@RequestParam String author) {
-        List<Book> books = bookService.getBookByAuthorUsingJPQL(author);
-        return new ResponseEntity<>(books, HttpStatus.OK);
-    }
+
+
+
+
 
 
 
