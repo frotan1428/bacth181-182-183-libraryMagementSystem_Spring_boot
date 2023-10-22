@@ -1,10 +1,14 @@
 package com.tpe.service;
 
+
 import com.tpe.domain.Teacher;
+import com.tpe.dto.TeacherDto;
 import com.tpe.exception.ConflictException;
 import com.tpe.exception.ResourceNotFoundException;
 import com.tpe.repository.TeacherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,65 +21,109 @@ public class TeacherService {
 
     public Teacher saveTeacher(Teacher teacher) {
 
-       Teacher existTeacher= teacherRepository.findByEmail(teacher.getEmail());
+     Teacher existTeacher = teacherRepository.findByEmail(teacher.getEmail());
+     if (existTeacher!=null){
+         throw new ConflictException("Teacher with the same +" + teacher.getEmail() + "  already exist ..");
+     }
+     return teacherRepository.save(teacher);
 
-       if (existTeacher!=null){
-           throw  new ConflictException("Teacher with the same  " +teacher.getEmail()+" already exist");
-       }
-       return teacherRepository.save(teacher);
     }
 
-    public List<Teacher> findAllTeachers() {
-
-      List<Teacher> teacherList = teacherRepository.findAll();
-      if (teacherList.isEmpty()){
-          throw new ResourceNotFoundException("Teacher List is Empty....");
-      }
-      return teacherList;
+    public List<Teacher> findAllTeacher() {
+       List<Teacher> teacherList = teacherRepository.findAll(); //[T1-T2]  []
+        if (teacherList.isEmpty()){
+            throw  new ResourceNotFoundException("Teacher List is Empty ..");//[]
+        }
+        return teacherList;
     }
 
-    public Teacher getTeacherByid(Long id) {
-        return teacherRepository.findById(id).orElseThrow(()->
-                new ResourceNotFoundException("Teacher is not Fund with Id : "+id));
+    public Teacher getTeacherById(Long id) {
+        return teacherRepository.findById(id).orElseThrow(()
+                -> new ResourceNotFoundException("Teacher is not found with id : "+id));
+
     }
 
     public void deleteTeacherById(Long id) {
-       Teacher teacher = getTeacherByid(id);
-       teacherRepository.delete(teacher);
-    }
 
+        Teacher teacher=  getTeacherById(id);
+        teacherRepository.delete(teacher);
+
+    }
 
     public List<Teacher> getTeacherByLastName(String lastName) {
+
         return teacherRepository.findByLastName(lastName);
+
     }
 
+    //1- we need check the teacher is exist
+    //2- check email
 
     public void updateTeacherById(Long id, Teacher teacher) {
-        // we need to check the teacher is exist or not
-        // check email
 
-        //step 1 : find teacher by id
-         Teacher exisTeacher =   getTeacherByid(id);
+        Teacher  existTeacher = getTeacherById(id);
 
-
-         //step 2 check email
-         //nikzad2@gmail.com              nikzad1@gmail.com
-         if (!exisTeacher.getEmail().equals(teacher.getEmail())){
+        //frotan@1234.com           //frotan@1234.com
+        if (!existTeacher.getEmail().equals(teacher.getEmail())){
             Teacher teacherWithUpdateEmail = teacherRepository.findByEmail(teacher.getEmail());
-
             if (teacherWithUpdateEmail!=null){
-                throw  new ConflictException("Email is exist for another Teacher ");
+                throw  new ConflictException("email already is exist for another teacher .");
             }
-         }
-         //step update teacher
 
-         exisTeacher.setName(teacher.getName());
-         exisTeacher.setLastName(teacher.getLastName());
-         exisTeacher.setEmail(teacher.getEmail());
-         exisTeacher.setPhoneNumber(teacher.getPhoneNumber());
-         exisTeacher.setBooks(teacher.getBooks());
-         teacherRepository.save(exisTeacher);
+        }
+
+        existTeacher.setName(teacher.getName());
+        existTeacher.setLastName(teacher.getLastName());
+        existTeacher.setEmail(teacher.getEmail());
+        existTeacher.setPhoneNumber(teacher.getPhoneNumber());
+        existTeacher.setBooks(teacher.getBooks());
+
+        teacherRepository.save(existTeacher);
     }
 
 
+    public Page<Teacher> getTeacherWithPage(Pageable pageable) {
+       return teacherRepository.findAll(pageable);
+    }
+
+    public void updateTeacherByDto(Long teacherId, TeacherDto teacherDto) {
+
+        Teacher existTeacher = getTeacherById(teacherId);
+
+        if (!existTeacher.getEmail().equals(teacherDto.getEmail())){
+            Teacher teacherWithUpdateEmail = teacherRepository.findByEmail(teacherDto.getEmail());
+            if (teacherWithUpdateEmail!=null){
+                throw  new ConflictException("email already is exist for another teacher .");
+            }
+
+        }
+
+        //update the filed of the existing teacher with new values
+
+        existTeacher.setName(teacherDto.getName());
+        existTeacher.setLastName(teacherDto.getLastName());
+        existTeacher.setEmail(teacherDto.getEmail());
+        existTeacher.setPhoneNumber(teacherDto.getPhoneNumber());
+
+        teacherRepository.save(existTeacher);
+
+
+    }
+
+    public TeacherDto getTeacherByDto(Long id) {
+
+        return teacherRepository.findTeacherByDto(id).orElseThrow(()->
+                new ResourceNotFoundException("Teacher whose id " +id + " not found "));
+
+    }
+
+    public List<Teacher> getTeacherByNameUsingJPQL(String name) {
+       //  return teacherRepository.findByNameUsingJPQL(name);
+     List<Teacher> teacher= teacherRepository.findByNameUsingJPQL(name);
+     if (teacher.isEmpty()){
+         throw  new ResourceNotFoundException("No Teacher found with :" +name);
+     }
+     return  teacher;
+
+    }
 }

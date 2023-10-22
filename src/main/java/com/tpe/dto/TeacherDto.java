@@ -1,28 +1,25 @@
-package com.tpe.domain;
+package com.tpe.dto;
 
+import com.tpe.domain.Teacher;
 import lombok.*;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
-@Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "tbl_teacher")
-public class Teacher {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class TeacherDto {
 
-    @Setter(AccessLevel.NONE)
     private Long id;
 
     @NotNull(message = "Name can not be null..")
@@ -31,25 +28,24 @@ public class Teacher {
     private String name;
 
 
-    @Column(name = "last_name",nullable = false)
     private String lastName;
 
     @Email(message = "Please provide the valid email")//@.com
-    @Column(nullable = false, length = 30,unique = true)
     private String email;
 
     private String phoneNumber;
 
-    @Setter(AccessLevel.NONE)
+
     private LocalDateTime registerDate = LocalDateTime.now();
 
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "teacher_book",
-    joinColumns = @JoinColumn(name = "teacher_id"),
-    inverseJoinColumns = @JoinColumn(name = "book_id"))
-    private List<Book>  books= new ArrayList<>();
+    public TeacherDto(Teacher teacher) {
 
-
-
+        this.id=teacher.getId();
+        this.name=teacher.getName();
+        this.lastName=teacher.getLastName();
+        this.phoneNumber=teacher.getPhoneNumber();
+        this.email=teacher.getEmail();
+        this.registerDate=teacher.getRegisterDate();
+    }
 }

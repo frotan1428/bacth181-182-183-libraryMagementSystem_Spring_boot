@@ -2,7 +2,8 @@ package com.tpe.service;
 
 import com.tpe.domain.Book;
 import com.tpe.domain.Teacher;
-import com.tpe.dto.BookDTO;
+import com.tpe.dto.BookDto;
+import com.tpe.exception.ConflictException;
 import com.tpe.exception.ResourceNotFoundException;
 import com.tpe.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,49 +51,77 @@ public class BookService {
         return bookRepository.findByTitle(title);
     }
 
-    public void updateBookByDTO(Long id, BookDTO bookDTO) {
-       Book existBook = getBookById(id);
-
-       //update filed of the exist book with new Value
-        existBook.setTitle(bookDTO.getTitle());
-        existBook.setAuthor(bookDTO.getAuthor());
-        existBook.setPublicationDate(bookDTO.getPublicationDate());
-
-        bookRepository.save(existBook);
-
+    public Page<Book> getAllBooksWithPage(Pageable pageable) {
+        return bookRepository.findAll(pageable);
     }
+
+
+    public void updateBookByDto(Long id, BookDto bookDto) {
+        Book existBook= getBookById(id);
+
+        //update the filed  of the exist book with new value
+
+        existBook.setTitle(bookDto.getTitle());
+        existBook.setAuthor(bookDto.getAuthor());
+        existBook.setPublicationDate(bookDto.getPublicationDate());
+        existBook.setAuthor(bookDto.getAuthor());
+        bookRepository.save(existBook);
+    }
+
 
 
     @Transactional
     public ResponseEntity<Map<String, String>> addBookForTeacher(Long teacherId, Long bookId) {
 
-        //step 1: find Teacher by id
-       Teacher  teacher = teacherService.getTeacherByid(teacherId);
-       //Step 2: find  Book By Id
-        Optional<Book> optionalBook =  bookRepository.findById(bookId); // return null
+        //step 1: find teacher by id
+        Teacher teacher= teacherService.getTeacherById(teacherId);
+        //find book By id
+
+        Optional<Book>  optionalBook = bookRepository.findById(bookId);//optional(null)
         if (optionalBook.isEmpty()){
-            Map<String,String> response=new HashMap<>();
-            response.put("message","Book With Id "+bookId+ " does not Exist");
+            Map<String,String> response= new HashMap<>();
+            response.put("message" ,"Book with id "+bookId+" does not exist");
             response.put("success","false");
-            return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);// 404 NOT FOUND
+
+            return  new ResponseEntity<>(response, HttpStatus.NOT_FOUND);//404 (NOT FOUND)
         }
-        Book book=optionalBook.get();
-        //step 3  check if the book Already  Exist for Teacher T 1  B=1
-       boolean bookExist = teacher.getBooks().stream().anyMatch(b->
+
+       Book book = optionalBook.get();
+
+        //step 3 check if the book already exist for th Teacher  t =1 book =1
+
+        boolean bookExist =  teacher.getBooks().stream().anyMatch(b->
                 b.getId().equals(book.getId()));
         if (bookExist){
-            Map<String,String> response=new HashMap<>();
-            response.put("message","Book  Already exist for the teacher   With id "+ teacher );
+
+            Map<String,String> response= new HashMap<>();
+            response.put("message" ,"Book already for the teacher with   id "+teacherId);
             response.put("success","false");
-            return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);//400;
+
+            return  new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);//400 (BAD _REQUEST)
+
         }
-        /// add the book for the Teacher return new response
+
+        //add the book to the teachers return new response
         teacher.getBooks().add(book);
-        Map<String,String> response=new HashMap<>();
-        response.put("message","Book With id "+bookId +" has been added for the Teacher with Id : " +teacherId );
+
+
+        Map<String,String> response= new HashMap<>();
+        response.put("message" ,"Book with id "+ bookId+ " has been added for the Teacher with id : " +teacherId);
         response.put("success","true");
 
-        return new ResponseEntity<>(response,HttpStatus.CREATED);
+        return  new ResponseEntity<>(response, HttpStatus.CREATED);//201 (CREATED)
 
     }
+
+    public List<Book> getBookByAuthorUsingJPQL(String author) {
+        List<Book> books = bookRepository.findByAuthorUsingJPQL(author);
+
+        if (books.isEmpty()) {
+            throw new ResourceNotFoundException("No books found with author: " + author);
+        }
+        return books;
+    }
+
+
 }

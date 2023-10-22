@@ -1,6 +1,6 @@
 package com.tpe.domain;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 import javax.persistence.*;
@@ -13,10 +13,9 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@Table(name ="tbl_book")
-
+@AllArgsConstructor
+@Table(name = "tbl_book")
 public class Book {
 
     @Id
@@ -24,9 +23,9 @@ public class Book {
     @Setter(AccessLevel.NONE)
     private Long id;
 
-    @NotNull(message = "title Can Not Be null")
-    @NotBlank(message = "title can not be White Space..")
-    @Size(min = 4,max = 25 ,message = "title '${validatedValue}' must be between : {min} and {max}  ...")//2
+    @NotNull(message = "Title  can not be null..")
+    @NotBlank(message = "Title  can not be white space ")//2
+    @Size(min = 4,max= 25,message = "Title  '${validatedValue}' must be between : {min} and {max} ")
     private String title;
 
     private String author;
@@ -34,8 +33,9 @@ public class Book {
     @Column(nullable = false)
     private String publicationDate;
 
-    @ManyToMany(mappedBy = "books",cascade = CascadeType.REMOVE,fetch = FetchType.EAGER)
-    private List<Teacher> teachers = new ArrayList<>();
+    @ManyToMany(mappedBy = "books",cascade = CascadeType.REMOVE,fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("books")
+    private List<Teacher> teachers= new ArrayList<>();
 
 
 }
